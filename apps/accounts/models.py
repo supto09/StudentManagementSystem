@@ -42,17 +42,23 @@ class UserManager(BaseUserManager):
         user.admin = True
         user.save(using=self._db)
 
-        Profile(user=user).save()
-
         return user
 
 
 class User(AbstractBaseUser):
+    class Types(models.TextChoices):
+        TEACHER = "TEACHER", "Teacher"
+        STUDENT = "STUDENT", "Student"
+        ADMIN = "ADMIN", "Admin"
+
+    base_type = Types.STUDENT
+
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
         unique=True,
     )
+    type = models.CharField(max_length=50, choices=Types.choices, default=base_type)
     active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False)  # a admin user; non super-user
     admin = models.BooleanField(default=False)  # a superuser
@@ -100,13 +106,25 @@ class User(AbstractBaseUser):
         return self.active
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(null=True, max_length=50)
-    gender = models.CharField(null=True, max_length=20)
-    birth_date = models.DateField(null=True, blank=True)
-    profile_pic = models.ImageField(default='default.jpg', upload_to='profile_pic')
-    mobile_no = models.CharField(null=True, max_length=30)
+class TeacherManager(models.Manager):
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(type=User.Types.TEACHER)
 
-    def __str__(self):
-        return self.user.email
+
+class Teacher(User):
+    objects = TeacherManager()
+
+    class Meta:
+        proxy = True
+
+
+class StudentManager(models.Manager):
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(type=User.Types.STUDENT)
+
+
+class Student(User):
+    objects = StudentManager()
+
+    class Meta:
+        proxy = True
