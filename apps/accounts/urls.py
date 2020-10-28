@@ -2,7 +2,7 @@ from django.urls import path
 
 from apps.accounts.api.views import (
     # registration_view,
-    ObtainAuthTokenView, UsersListView,
+    LoginView, UsersListView, TeachersListView, StudentsListView,
     # account_properties_view,
     # update_account_view,
     # does_account_exist_view,
@@ -18,7 +18,9 @@ urlpatterns = [
     # path('properties/update', update_account_view, name="update"),
     # path('register', registration_view, name="register"),
 
-    path('login', ObtainAuthTokenView.as_view(), name="login"),
+    path('login', LoginView.as_view(), name="login"),
     path('users', UsersListView.as_view(), name="users"),
+    path('teachers', TeachersListView.as_view(), name="teachers"),
+    path('students', StudentsListView.as_view(), name="students"),
 
 ]

@@ -161,11 +161,11 @@ from rest_framework.authtoken.models import Token
 
 # LOGIN
 # URL: http://127.0.0.1:8000/accounts/login
-from apps.accounts.api.serializers import UsersSerializer
-from apps.accounts.models import User
+from apps.accounts.api.serializers import UsersSerializer, TeacherSerializer, StudentSerializer
+from apps.accounts.models import User, Teacher, Student
 
 
-class ObtainAuthTokenView(APIView):
+class LoginView(APIView):
     authentication_classes = []
     permission_classes = []
 
@@ -174,18 +174,19 @@ class ObtainAuthTokenView(APIView):
 
         email = request.data.get('email')
         password = request.data.get('password')
-        account = authenticate(email=email, password=password)
+        user = authenticate(email=email, password=password)
 
         print(request.data)
 
-        if account:
+        if user:
             try:
-                token = Token.objects.get(user=account)
+                token = Token.objects.get(user=user)
             except Token.DoesNotExist:
-                token = Token.objects.create(user=account)
+                token = Token.objects.create(user=user)
             context['response'] = 'Successfully authenticated.'
-            context['pk'] = account.pk
+            context['id'] = user.id
             context['email'] = email.lower()
+            context['type'] = user.type
             context['token'] = token.key
         else:
             context['response'] = 'Error'
@@ -203,3 +204,25 @@ class UsersListView(generics.ListAPIView):
         This view should return a list of all the users
         """
         return User.objects.all()
+
+
+@permission_classes((IsAuthenticated,))
+class TeachersListView(generics.ListAPIView):
+    serializer_class = TeacherSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the users
+        """
+        return Teacher.objects.all()
+
+
+@permission_classes((IsAuthenticated,))
+class StudentsListView(generics.ListAPIView):
+    serializer_class = StudentSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the users
+        """
+        return Student.objects.all()
